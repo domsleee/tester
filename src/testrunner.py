@@ -1,14 +1,12 @@
 import filecmp
 import re
-from subprocess import call
 import subprocess
 import logging
 import os
 
 logger = logging.getLogger('check')
 GCC_FLAGS = ['-D', 'TEST_ENVIRONMENT']
-COMPILE_NAME = 'run'
-COMPILE_OUT = os.path.join('.', COMPILE_NAME)
+COMPILE_OUT = os.path.join('.', 'run')
 DEFAULT_TESTS_FOLDER = 'tests'
 DELIM = '======\n'
 
@@ -19,25 +17,26 @@ class TestRunner:
             raise ValueError('Program file %s does not exist' %
                              source_filepath)
         self._compile(source_filepath)
-        self.test_folder = self._get_test_folder(arg_test_folder)
+        dirname = os.path.dirname(source_filepath)
+        self.test_folder = self._get_test_folder(dirname, arg_test_folder)
 
-    def _get_test_folder(self, arg_test_folder):
+    def _get_test_folder(self, dirname, arg_test_folder):
         test_folder = None
         if arg_test_folder:
             test_folder = arg_test_folder
         else:
-            test_folder = os.path.join(os.getcwd(), DEFAULT_TESTS_FOLDER)
+            test_folder = os.path.join(dirname, DEFAULT_TESTS_FOLDER)
         if not os.path.isdir(test_folder):
             raise ValueError('Invalid testing folder provided')
         return test_folder
 
     def _compile(self, source_filepath):
         logger.debug('compiling')
-        call(['g++', source_filepath, '-o', COMPILE_NAME] + GCC_FLAGS)
+        subprocess.call(['g++', source_filepath, '-o', COMPILE_OUT] + GCC_FLAGS)
 
     def run_tests(self):
         def first_digit(val):
-            re_digit = re.compile(r'(\d)+')
+            re_digit = re.compile(r'(\d+)')
             m = re_digit.search(val)
             if m:
                 return int(m.group(1))
