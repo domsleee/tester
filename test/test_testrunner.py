@@ -38,7 +38,7 @@ class TestTestRunner:
         assert(runner.test_folder == exp_folder)
 
     @mock.patch('testrunner.subprocess.call')
-    def test_invalid_filepath_throws_exception(self, call):
+    def test_constructor_invalid_filepath_throws_exception(self, call):
         with pytest.raises(ValueError):
             runner = testrunner.TestRunner('nonexistentfile', TEST_FOLDER)
 
