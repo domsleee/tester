@@ -32,7 +32,8 @@ class TestRunner:
 
     def _compile(self, source_filepath):
         logger.debug('compiling')
-        subprocess.call(['g++', source_filepath, '-o', COMPILE_OUT] + GCC_FLAGS)
+        subprocess.call(['g++', source_filepath, '-o', COMPILE_OUT] +
+                        GCC_FLAGS)
 
     def run_tests(self):
         def first_digit(val):
