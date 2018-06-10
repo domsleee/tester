@@ -4,28 +4,30 @@ import logging
 from . import testrunner
 logging.basicConfig(level=logging.INFO)
 DEFAULT_TESTS_FOLDER = 'tests'
+
+
 DESC = """Compile program and run against tests.
 
-Tests are stored in %s/ folder, with the input and output separated by
-the delimeter""" % DEFAULT_TESTS_FOLDER
+Tests are stored in tests/ folder, with the input and output separated by
+the delimeter"""
 EP = "EX: %(prog)s a.cpp"
 
 
-def main():
+def cli_entry():
     parser = argparse.ArgumentParser(description=DESC, epilog=EP)
     parser.add_argument('source_path', type=str,
                         help='source code to compile')
     parser.add_argument('-t', '--test-path', metavar='f', default=DEFAULT_TESTS_FOLDER,
                         help='folder containing tests')
     args = parser.parse_args()
-    run(args)
+    main(args)
 
 
-def run(args):
+def main(args):
     t = testrunner.TestRunner(args.source_path, args.test_path)
     t.run_tests()
     t.cleanup()
 
 
 if __name__ == '__main__':
-    main()
+    cli_entry()

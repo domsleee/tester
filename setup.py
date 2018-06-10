@@ -12,6 +12,6 @@ setup(
     packages=['src'],
     zip_safe=True,
     entry_points={
-        'console_scripts': ['tester=src.cli:main']
+        'console_scripts': ['tester=src.cli:cli_entry']
     }
 )

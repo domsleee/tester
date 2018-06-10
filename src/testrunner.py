@@ -14,11 +14,11 @@ class TestRunner:
     """Module that runs the tests.
 
     Attributes:
-        test_path (str): path for tests
+        test_path (str): path for tests.
 
     Todo:
         * encapsulate test_path, GCC_FLAGS, DELIM into
-          a config class/file
+          a config class/file.
     """
     def __init__(self, source_filepath, test_path):
         if not os.path.isfile(source_filepath):
@@ -36,6 +36,12 @@ class TestRunner:
                         GCC_FLAGS)
 
     def run_tests(self):
+        """Run tests in `self.test_path`.
+
+        Todo:
+            * use glob for `tests` for files with numbers, allowing
+              a simpler `first_integer`.
+        """
         def first_integer(val):
             re_digit = re.compile(r'(\d+)')
             m = re_digit.search(val)
