@@ -27,21 +27,16 @@ class TestTestRunner:
         exp_compile = 'g++ '+FILEPATH+' -o '+testrunner.COMPILE_OUT
         assert(act_compile).startswith(exp_compile)
 
+   
     @mock.patch('testrunner.subprocess.call')
-    def test_constructor_with_no_test_folder(self, call):
-        with pytest.raises(ValueError):
-            testrunner.TestRunner(FILEPATH, None)
-
-    @mock.patch('testrunner.subprocess.call')
-    def test_constructor_with_default_test_folder(self, call):
-        exp_folder = os.path.join(WRAPPER_FOLDER,
-                                  testrunner.DEFAULT_TESTS_FOLDER)
+    def test_constructor_with_valid_test_folder(self, call):
+        exp_folder = os.path.join(WRAPPER_FOLDER, 'tests')
         os.mkdir(exp_folder)
-        runner = testrunner.TestRunner(FILEPATH, None)
-        assert(runner.test_folder == exp_folder)
+        runner = testrunner.TestRunner(FILEPATH, exp_folder)
+        assert(runner.test_path == exp_folder)
 
     @mock.patch('testrunner.subprocess.call')
-    def test_constructor_invalid_filepath_throws_exception(self, call):
+    def test_constructor_invalid_sourcefilepath_throws_exception(self, call):
         with pytest.raises(ValueError):
             testrunner.TestRunner('nonexistentfile', TEST_FOLDER)
 

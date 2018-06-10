@@ -7,28 +7,28 @@ import os
 logger = logging.getLogger('check')
 GCC_FLAGS = ['-D', 'TEST_ENVIRONMENT']
 COMPILE_OUT = os.path.join('.', 'run')
-DEFAULT_TESTS_FOLDER = 'tests'
 DELIM = '======\n'
 
 
 class TestRunner:
-    def __init__(self, source_filepath, arg_test_folder):
+    """Module that runs the tests.
+
+    Attributes:
+        test_path (str): path for tests
+
+    Todo:
+        * encapsulate test_path, GCC_FLAGS, DELIM into
+          a config class/file
+    """
+    def __init__(self, source_filepath, test_path):
         if not os.path.isfile(source_filepath):
             raise ValueError('Program file %s does not exist' %
                              source_filepath)
         self._compile(source_filepath)
         dirname = os.path.dirname(source_filepath)
-        self.test_folder = self._get_test_folder(dirname, arg_test_folder)
-
-    def _get_test_folder(self, dirname, arg_test_folder):
-        test_folder = None
-        if arg_test_folder:
-            test_folder = arg_test_folder
-        else:
-            test_folder = os.path.join(dirname, DEFAULT_TESTS_FOLDER)
-        if not os.path.isdir(test_folder):
-            raise ValueError('Invalid testing folder provided')
-        return test_folder
+        if not os.path.isdir(test_path):
+            raise ValueError('Invalid test_path \'%s\'' % test_path)
+        self.test_path = test_path
 
     def _compile(self, source_filepath):
         logger.debug('compiling')
@@ -36,18 +36,18 @@ class TestRunner:
                         GCC_FLAGS)
 
     def run_tests(self):
-        def first_digit(val):
+        def first_integer(val):
             re_digit = re.compile(r'(\d+)')
             m = re_digit.search(val)
             if m:
                 return int(m.group(1))
-        tests = os.listdir(self.test_folder)
-        tests = list(filter(lambda x: first_digit(x), tests))
-        for filename in sorted(tests, key=lambda x: first_digit(x)):
+        tests = os.listdir(self.test_path)
+        tests = list(filter(lambda x: first_integer(x), tests))
+        for filename in sorted(tests, key=lambda x: first_integer(x)):
             if '.' in filename:
                 continue
-            match = self._run_test(os.path.join(self.test_folder, filename))
-            print('%s: %s' % (filename, 'Success' if match else 'FAIL'))
+            match = self._run_test(os.path.join(self.test_path, filename))
+            print('%s: %s' % (filename, 'PASSed' if match else 'FAILed'))
 
     def _run_test(self, test):
         logger.debug('running test %s' % test)
@@ -65,6 +65,7 @@ class TestRunner:
         return match
 
     def split_file(self, filepath, in_file, out_file, delim):
+        """Separate test file into an input and output file"""
         files = [open(in_file, 'w'), open(out_file, 'w')]
         i = 0
         with open(filepath, 'r') as file:
