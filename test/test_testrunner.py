@@ -4,27 +4,31 @@ import mock
 import os
 WRAPPER_FOLDER = 'env'
 FILEPATH = os.path.join(WRAPPER_FOLDER, 'a.cpp')
+EXEC = FILEPATH+'_out'
 TEST_FOLDER = os.path.join(WRAPPER_FOLDER, 'tests_custom')
 TEST_FILES = ['test1', 'test2', 'test10', 'test101', 'test503']
 
 
 @pytest.fixture()
-def setup_files():
+def setup_files_cpp():
     os.mkdir(WRAPPER_FOLDER)
     open(FILEPATH, 'w').close()
+    open(EXEC, 'w').close()
+    os.chmod(EXEC, 0755)
+
     os.mkdir(TEST_FOLDER)
     for filename in TEST_FILES[::-1]:
         open(os.path.join(TEST_FOLDER, filename), 'w').close()
 
 
-@pytest.mark.usefixtures('fs', 'setup_files')
+@pytest.mark.usefixtures('fs', 'setup_files_cpp')
 class TestTestRunner:
     @mock.patch('testrunner.subprocess.call')
     def setup(self, call):
-        self.runner = testrunner.TestRunner(FILEPATH, TEST_FOLDER)
+        self.runner = testrunner.TestRunner(FILEPATH, TEST_FOLDER, False)
         assert(call.call_count == 1)
         act_compile = ' '.join(call.call_args[0][0])
-        exp_compile = 'g++ '+FILEPATH+' -o '+testrunner.COMPILE_OUT
+        exp_compile = 'g++ '+FILEPATH+' -o '+EXEC
         assert(act_compile).startswith(exp_compile)
 
    
@@ -32,13 +36,13 @@ class TestTestRunner:
     def test_constructor_with_valid_test_folder(self, call):
         exp_folder = os.path.join(WRAPPER_FOLDER, 'tests')
         os.mkdir(exp_folder)
-        runner = testrunner.TestRunner(FILEPATH, exp_folder)
+        runner = testrunner.TestRunner(FILEPATH, exp_folder, False)
         assert(runner.test_path == exp_folder)
 
     @mock.patch('testrunner.subprocess.call')
     def test_constructor_invalid_sourcefilepath_throws_exception(self, call):
         with pytest.raises(ValueError):
-            testrunner.TestRunner('nonexistentfile', TEST_FOLDER)
+            testrunner.TestRunner('nonexistentfile', TEST_FOLDER, False)
 
     @mock.patch.object(testrunner.TestRunner, '_run_test')
     def test_run_tests(self, run_test):
