@@ -19,12 +19,14 @@ def cli_entry():
                         help='source code to compile')
     parser.add_argument('-t', '--test-path', metavar='f', default=DEFAULT_TESTS_FOLDER,
                         help='folder containing tests')
+    parser.add_argument('-e', '--executable', action='store_true',
+                        help='if the `source_path` argument is an executable')
     args = parser.parse_args()
     main(args)
 
 
 def main(args):
-    t = testrunner.TestRunner(args.source_path, args.test_path)
+    t = testrunner.TestRunner(args.source_path, args.test_path, args.executable)
     t.run_tests()
     t.cleanup()
 

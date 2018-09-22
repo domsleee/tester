@@ -6,7 +6,6 @@ import os
 
 logger = logging.getLogger('check')
 GCC_FLAGS = ['-D', 'TEST_ENVIRONMENT']
-COMPILE_OUT = os.path.join('.', 'run')
 DELIM = '======\n'
 
 
@@ -15,25 +14,43 @@ class TestRunner:
 
     Attributes:
         test_path (str): path for tests.
+        executable (bool): if `source_filepath` is the executable,
+                           otherwise it will attempt to compile
 
     Todo:
         * encapsulate test_path, GCC_FLAGS, DELIM into
           a config class/file.
     """
-    def __init__(self, source_filepath, test_path):
+    def __init__(self, source_filepath, test_path, executable):
         if not os.path.isfile(source_filepath):
-            raise ValueError('Program file %s does not exist' %
+            raise ValueError('Program file \'%s\' does not exist' %
                              source_filepath)
-        self._compile(source_filepath)
-        dirname = os.path.dirname(source_filepath)
         if not os.path.isdir(test_path):
             raise ValueError('Invalid test_path \'%s\'' % test_path)
+
+        self.compile_out = False
         self.test_path = test_path
+        ext = os.path.splitext(source_filepath)[1] # file extension
+
+        if executable or ext == '' or re.match(r'py|sh', ext):
+            self.executable = os.path.join('.', source_filepath)
+        else:
+            self.compile_out = source_filepath+'_out'
+            self._compile(source_filepath)
+            self.executable = os.path.join('.', self.compile_out)
+
+        if not os.access(self.executable, os.X_OK):
+            raise ValueError('Executable \'%s\' does not have execute permission' %
+                             self.executable)
 
     def _compile(self, source_filepath):
         logger.debug('compiling')
-        subprocess.call(['g++', source_filepath, '-o', COMPILE_OUT] +
-                        GCC_FLAGS)
+        try:
+            subprocess.call(['g++', source_filepath, '-o', self.compile_out]+
+                            GCC_FLAGS)
+        except Exception:
+            print('Could not compile \'%s\'' % source_filepath)
+            raise
 
     def run_tests(self):
         """Run tests in `self.test_path`.
@@ -43,10 +60,9 @@ class TestRunner:
               a simpler `first_integer`.
         """
         def first_integer(val):
-            re_digit = re.compile(r'(\d+)')
-            m = re_digit.search(val)
-            if m:
-                return int(m.group(1))
+            m = re.search(r'(\d+)', val)
+            if m: return int(m.group(1))
+
         tests = os.listdir(self.test_path)
         tests = list(filter(lambda x: first_integer(x), tests))
         for filename in sorted(tests, key=lambda x: first_integer(x)):
@@ -63,7 +79,11 @@ class TestRunner:
         self.split_file(test, in_file, exp_file, DELIM)
         with open(out_file, 'w') as outfile:
             with open(in_file, 'r') as infile:
-                subprocess.call(COMPILE_OUT, stdin=infile, stdout=outfile)
+                try:
+                    subprocess.call(self.executable, stdin=infile, stdout=outfile)
+                except Exception:
+                    print('I have no idea why it would fail here')
+                    raise
         match = filecmp.cmp(exp_file, out_file)
         if match:
             for file in [in_file, exp_file, out_file]:
@@ -84,4 +104,5 @@ class TestRunner:
             file.close()
 
     def cleanup(self):
-        os.remove(COMPILE_OUT)
+        if self.compile_out:
+            os.remove(self.compile_out)
