@@ -21,7 +21,7 @@ class TestRunner:
         * encapsulate test_path, GCC_FLAGS, DELIM into
           a config class/file.
     """
-    def __init__(self, source_filepath, test_path, executable):
+    def __init__(self, source_filepath, test_path='/', executable):
         if not os.path.isfile(source_filepath):
             raise ValueError('Program file \'%s\' does not exist' %
                              source_filepath)
