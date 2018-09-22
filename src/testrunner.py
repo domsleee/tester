@@ -68,15 +68,16 @@ class TestRunner:
         for filename in sorted(tests, key=lambda x: first_integer(x)):
             if '.' in filename:
                 continue
-            match = self._run_test(os.path.join(self.test_path, filename))
-            print('%s: %s' % (filename, 'PASSed' if match else 'FAILed'))
+            test = os.path.join(self.test_path, filename)
+            in_file, exp_file = test+'.in', test+'.exp'
+            self.split_file(test, in_file, exp_file, DELIM)
+            res = 'PASSed' if self._run_test(in_file, exp_file) else 'FAILed'
+            for file in [in_file, exp_file]: os.remove(file)
+            print('%s: %s' % (filename, res))
 
-    def _run_test(self, test):
-        logger.debug('running test %s' % test)
-        in_file = test+'.in'
-        exp_file = test+'.exp'
-        out_file = test+'.out'
-        self.split_file(test, in_file, exp_file, DELIM)
+    def _run_test(self, in_file, exp_file):
+        logger.debug('running test (%s,%s)' % (in_file, exp_file))
+        out_file = in_file+'.out'
         with open(out_file, 'w') as outfile:
             with open(in_file, 'r') as infile:
                 try:
@@ -86,8 +87,7 @@ class TestRunner:
                     raise
         match = filecmp.cmp(exp_file, out_file)
         if match:
-            for file in [in_file, exp_file, out_file]:
-                os.remove(file)
+            for file in [out_file]: os.remove(file)
         return match
 
     def split_file(self, filepath, in_file, out_file, delim):
