@@ -1,0 +1,5 @@
+pytest
+pytest-pythonpath
+mock
+pyfakefs
+setuptools
