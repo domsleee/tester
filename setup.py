@@ -1,7 +1,8 @@
-from setuptools import setup
+#!/usr/bin/env python3
+import setuptools
 from tester.cli import DESC
 
-setup(
+setuptools.setup(
     name='tester',
     version='0.0.1',
     description=DESC,
