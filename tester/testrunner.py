@@ -21,7 +21,7 @@ class TestRunner:
         * encapsulate test_path, GCC_FLAGS, DELIM into
           a config class/file.
     """
-    def __init__(self, source_filepath, test_path='/', executable):
+    def __init__(self, source_filepath, test_path, executable):
         if not os.path.isfile(source_filepath):
             raise ValueError('Program file \'%s\' does not exist' %
                              source_filepath)
@@ -77,7 +77,7 @@ class TestRunner:
 
     def _run_test(self, in_file, exp_file):
         logger.debug('running test (%s,%s)' % (in_file, exp_file))
-        out_file = in_file+'.out'
+        out_file = in_file.replace('.in', '.out')
         with open(out_file, 'w') as outfile:
             with open(in_file, 'r') as infile:
                 try:
